@@ -1,0 +1,8 @@
+php的主目录网址http://video.ktdsp.com
+首页php是：/get_home_videoInfo.php
+post消息：上传参数名：devicetype=>android
+updatetype分为3种：update_home（第一次加载视频信息时调用），update_home_2down（向上滑动到最后的时候，调用加载以往视频），update_home_2top（在顶部向下滑动，重新加载视频信息）
+periodicalid：update_home时传0  update_home_2down时传最小的期刊id  update_home_2top时传最大期刊ID
+
+
+http://video.ktdsp.com/get_home_videoInfo.php
