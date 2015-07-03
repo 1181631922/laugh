@@ -13,13 +13,13 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:background="@color/index_background_color" >
+        android:background="@drawable/my_bj01"
+         >
 
         <RelativeLayout
             android:id="@+id/course_layout"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:background="@color/index_background_color"
             android:layout_weight="1" >
 
             <LinearLayout
@@ -47,9 +47,8 @@
 
         <RelativeLayout
             android:id="@+id/found_layout"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:background="@color/index_background_color"
             android:layout_weight="1" >
 
             <LinearLayout
@@ -78,9 +77,8 @@
 
         <RelativeLayout
             android:id="@+id/setting_layout"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:background="@color/index_background_color"
             android:layout_weight="1" >
 
             <LinearLayout

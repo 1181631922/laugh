@@ -1,19 +1,19 @@
 package com.example.fanyafeng.laugh.activity;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.example.fanyafeng.laugh.ABaseActivity;
 import com.example.fanyafeng.laugh.R;
 
 
 /**
  * 自定义actionbar的父类
  */
-public class BaseCustomActivity extends Activity {
+public class BaseCustomActivity extends ABaseActivity {
     protected boolean isShowShare = false;
     protected String title;
     public TextView base_custom_titlebar_title;

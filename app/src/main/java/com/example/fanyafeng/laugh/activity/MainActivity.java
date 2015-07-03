@@ -141,13 +141,13 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     public void clearChioce()
     {
         course_image.setImageResource(R.drawable.index_home_normal);
-        course_layout.setBackgroundColor(whirt);
+//        course_layout.setBackgroundColor(whirt);
         course_text.setTextColor(gray);
         found_image.setImageResource(R.drawable.index_rank_normal);
-        found_layout.setBackgroundColor(whirt);
+//        found_layout.setBackgroundColor(whirt);
         found_text.setTextColor(gray);
         settings_image.setImageResource(R.drawable.index_personal_normal);
-        settings_layout.setBackgroundColor(whirt);
+//        settings_layout.setBackgroundColor(whirt);
         settings_text.setTextColor(gray);
     }
 

@@ -1,6 +1,7 @@
 package com.example.fanyafeng.laugh.activity;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -18,8 +19,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.fanyafeng.laugh.R;
+import com.example.fanyafeng.laugh.util.L;
+import com.example.fanyafeng.laugh.util.PostUtil;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class VideoDisplayActivity extends BaseNoActionbarActivity {
 
@@ -36,12 +42,18 @@ public class VideoDisplayActivity extends BaseNoActionbarActivity {
     private TextView tv_time;
     private int time;
     private Handler handler;
+    private String url_info;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video_display);
+        Intent intent = this.getIntent();
+        url_info= intent.getStringExtra("url_info");
+        L.d("得到的url播放地址",url_info);
 
+        initView();
+        initData();
 
         bt_play = (Button) findViewById(R.id.bt_play);
         bt_pause = (Button) findViewById(R.id.bt_pause);
@@ -136,6 +148,25 @@ public class VideoDisplayActivity extends BaseNoActionbarActivity {
 
     }
 
+    private void initView(){
+
+    }
+
+    private void initData(){
+
+    }
+
+    private void getRealUrl(){
+        Map<String,String> map=new LinkedHashMap<>();
+        map.put("url",url_info);
+        try {
+            String backMsg = PostUtil.postData(BaseUrl, map);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
     @Override
     public void onClick(View v) {
         super.onClick(v);
@@ -198,8 +229,10 @@ public class VideoDisplayActivity extends BaseNoActionbarActivity {
 
     private void play(final int currentPosition2) {
         // TODO 自动生成的方法存根
-        String path = "http://k.youku.com/player/getFlvPath/sid/7435648051493126acb20_01/st/mp4/fileid/030008010054CB05B54ED70163A5B81790D1AF-C026-62EB-FB0A-376D59D2126E?K=432f99463a1c4705282a9871&hd=1&myp=0&ts=98&ypp=0&ctype=12&ev=1&token=5308&oip=1931268481&ep=dSaXH0%2BJXs4F5CfWiz8bYX2xJnUPXP4J9h%2BFidJjALshTJvNmTujwpnFOvhCF%2F8aAyd0GOr2otCTazFiYYNDq24Q2UzdS%2FqWjPCS5a5UwuQFb200c8%2FRwVSbQDD5";
-        File file = new File(path);
+//        String path = "http://k.youku.com/player/getFlvPath/sid/7435648051493126acb20_01/st/mp4/fileid/030008010054CB05B54ED70163A5B81790D1AF-C026-62EB-FB0A-376D59D2126E?K=432f99463a1c4705282a9871&hd=1&myp=0&ts=98&ypp=0&ctype=12&ev=1&token=5308&oip=1931268481&ep=dSaXH0%2BJXs4F5CfWiz8bYX2xJnUPXP4J9h%2BFidJjALshTJvNmTujwpnFOvhCF%2F8aAyd0GOr2otCTazFiYYNDq24Q2UzdS%2FqWjPCS5a5UwuQFb200c8%2FRwVSbQDD5";
+//        File file = new File(video_url);
+        String path="http://pl.youku.com/playlist/m3u8?ts=1435824360&keyframe=0&vid=XMjcwNjYwNTIw&type=mp4&ep=dSaXH0GPUs0G5SfYjj8bMSXnIXZZXJZ3rEzC%2F4gLR8VAMa%2FQnTbQww%3D%3D&sid=743582436047612f95e1f&token=4814&ctype=12&ev=1&oip=1931268481";
+        File file = new File(url_info);
 
         try {
             mediaplayer = new MediaPlayer();

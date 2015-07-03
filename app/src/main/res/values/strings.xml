@@ -19,5 +19,6 @@
     <string name="title_activity_video_display">VideoDisplayActivity</string>
     <string name="title_activity_display_video">DisplayVideoActivity</string>
     <string name="title_activity_base_no_actionbar">BaseNoActionbarActivity</string>
+    <string name="title_activity_video_list">VideoListActivity</string>
 
 </resources>

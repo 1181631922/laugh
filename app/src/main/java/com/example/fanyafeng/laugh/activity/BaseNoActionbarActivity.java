@@ -7,9 +7,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 
+import com.example.fanyafeng.laugh.ABaseActivity;
 import com.example.fanyafeng.laugh.R;
 
-public class BaseNoActionbarActivity extends Activity implements View.OnClickListener{
+public class BaseNoActionbarActivity extends ABaseActivity implements View.OnClickListener{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

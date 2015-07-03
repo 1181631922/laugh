@@ -77,16 +77,43 @@ public class IndexListViewAdapter extends BaseAdapter {
             holder.LeftTopTitle = (TextView) convertView.findViewById(R.id.index_left_up_tv);
             holder.LeftTopTimes = (TextView) convertView.findViewById(R.id.index_left_up_time);
             holder.RightTopImg = (ImageView) convertView.findViewById(R.id.index_right_up_iv);
+            holder.RightTopImg.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                }
+            });
             holder.RightTopTitle = (TextView) convertView.findViewById(R.id.index_right_up_tv);
             holder.RightTopTimes = (TextView) convertView.findViewById(R.id.index_right_up_time);
             holder.LeftBottomImg = (ImageView) convertView.findViewById(R.id.index_left_down_iv);
+            holder.LeftBottomImg.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                }
+            });
             holder.LeftBottomTitle = (TextView) convertView.findViewById(R.id.index_left_down_tv);
             holder.LeftBottomTimes = (TextView) convertView.findViewById(R.id.index_left_down_time);
             holder.RightBottomImg = (ImageView) convertView.findViewById(R.id.index_right_down_iv);
-            holder.RightBottomTitle = (TextView) convertView.findViewById(R.id.index_left_down_tv);
-            holder.RightBottomTimes = (TextView) convertView.findViewById(R.id.index_left_down_time);
+            holder.RightBottomImg.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                }
+            });
+            holder.RightBottomTitle = (TextView) convertView.findViewById(R.id.index_right_down_tv);
+            holder.RightBottomTimes = (TextView) convertView.findViewById(R.id.index_right_down_time);
         }
         convertView.setTag(position);
+            holder.Title.setText(indexListViewBeanList.get(position).getTitle());
+            holder.LeftTopTitle.setText(indexListViewBeanList.get(position).getLeftTopTitle());
+            holder.LeftTopTimes.setText(indexListViewBeanList.get(position).getLeftTopTimes());
+            holder.RightTopTitle.setText(indexListViewBeanList.get(position).getRightTopTitle());
+            holder.RightTopTimes.setText(indexListViewBeanList.get(position).getRightTopTimes());
+            holder.LeftBottomTitle.setText(indexListViewBeanList.get(position).getLeftBottomTimes());
+            holder.LeftBottomTimes.setText(indexListViewBeanList.get(position).getLeftBottomTimes());
+            holder.RightBottomTitle.setText(indexListViewBeanList.get(position).getRightBottomTitle());
+            holder.RightBottomTimes.setText(indexListViewBeanList.get(position).getRightBottomTimes());
         holder.LeftTopImg.setBackgroundResource(R.drawable.wait);
         syncImageLoader.loadImage(position,indexListViewBeanList.get(position).getLeftTopImg(),imageLoadListener, StringTools.getFileNameFromUrl(indexListViewBeanList.get(position).getLeftTopImg()));
 

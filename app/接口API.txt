@@ -4,5 +4,11 @@ post消息：上传参数名：devicetype=>android
 updatetype分为3种：update_home（第一次加载视频信息时调用），update_home_2down（向上滑动到最后的时候，调用加载以往视频），update_home_2top（在顶部向下滑动，重新加载视频信息）
 periodicalid：update_home时传0  update_home_2down时传最小的期刊id  update_home_2top时传最大期刊ID
 
-
-http://video.ktdsp.com/get_home_videoInfo.php
+1.根路径
+    http://video.ktdsp.com/
+2.获取首页数据（不包括下拉刷新，上拉加载）
+    get_home_videoInfo.php
+    devicetype=android，updatetype＝update_home， periodicalid＝0
+3.得到播放网址后需要解析真实播放地址
+    /video_api/url_to_m3u8.php
+    url="视频地址"
