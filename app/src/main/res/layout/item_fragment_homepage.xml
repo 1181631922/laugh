@@ -8,12 +8,20 @@
         android:layout_width="fill_parent"
         android:layout_height="40dp">
 
+        <ImageView
+            android:id="@+id/index_icon"
+            android:layout_width="20dp"
+            android:layout_height="40dp"
+            android:src="@drawable/icon_bt"/>
+
         <TextView
             android:id="@+id/index_title"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_marginLeft="5dp"
+            android:layout_toRightOf="@id/index_icon"
             android:gravity="center_vertical"
+            android:text="标题"
             android:textColor="@color/black" />
 
         <Button

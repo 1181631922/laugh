@@ -28,7 +28,9 @@ public class BaseFragment extends Fragment implements View.OnClickListener{
     private String mParam1;
     private String mParam2;
 
-    protected String BaseUrl="http://video.ktdsp.com/get_home_videoInfo.php";
+    protected String BaseUrl="http://video.ktdsp.com/";
+    protected String GetHomeInfo="get_home_videoInfo.php";
+    protected String GetRealUrl="video_api/url_to_m3u8.php";
 
 //    private OnFragmentInteractionListener mListener;
 

@@ -6,7 +6,6 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,9 +23,9 @@ import com.example.fanyafeng.laugh.activity.VideoListActivity;
 import com.example.fanyafeng.laugh.bean.IndexListViewBean;
 import com.example.fanyafeng.laugh.bean.IndexUrlBean;
 import com.example.fanyafeng.laugh.layout.PullToRefreshLayout;
+import com.example.fanyafeng.laugh.util.ImageLoaderCache;
 import com.example.fanyafeng.laugh.util.L;
 import com.example.fanyafeng.laugh.util.PostUtil;
-import com.example.fanyafeng.laugh.util.S;
 import com.example.fanyafeng.laugh.util.StringTools;
 import com.example.fanyafeng.laugh.util.SyncImageLoader;
 
@@ -36,7 +35,6 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -96,7 +94,7 @@ public class HomePageFragment extends BaseFragment {
         map.put("updatetype", "update_home");
         map.put("periodicalid", "0");
         try {
-            String backMsg = PostUtil.postData(BaseUrl, map);
+            String backMsg = PostUtil.postData(BaseUrl+GetHomeInfo, map);
             L.d(backMsg.toString());
             try {
                 JSONObject jsonObject = new JSONObject(backMsg);
@@ -207,7 +205,7 @@ public class HomePageFragment extends BaseFragment {
 
     private void initDownView() {
         progressBar.setVisibility(View.GONE);
-        indexListViewAdapter = new IndexListViewAdapter(getActivity(), indexListViewBeanList, listView);
+        indexListViewAdapter = new IndexListViewAdapter(getActivity(), indexListViewBeanList);
         listView.setAdapter(indexListViewAdapter);
         listView.setOnItemClickListener(new IndexOnItemClickListener());
     }
@@ -262,11 +260,21 @@ public class HomePageFragment extends BaseFragment {
         private ListView listView;
         SyncImageLoader syncImageLoader;
 
-        public IndexListViewAdapter(Context context, List<IndexListViewBean> indexListViewBeanList, ListView listView) {
+        //缓存到本地sd卡，并且可以更新ListView图片
+        private ImageLoaderCache mImageLoader;
+
+
+
+
+
+        public IndexListViewAdapter(Context context, List<IndexListViewBean> indexListViewBeanList) {
             this.context = context;
             this.indexListViewBeanList = indexListViewBeanList;
-            this.listView = listView;
-            syncImageLoader = new SyncImageLoader();
+            mImageLoader = new ImageLoaderCache(context);
+        }
+
+        public ImageLoaderCache getImagerLoader(){
+            return mImageLoader;
         }
 
         @Override
@@ -363,17 +371,23 @@ public class HomePageFragment extends BaseFragment {
                 holder.LeftBottomTimes.setText(indexListViewBeanList.get(position).getLeftBottomTimes());
                 holder.RightBottomTitle.setText(indexListViewBeanList.get(position).getRightBottomTitle());
                 holder.RightBottomTimes.setText(indexListViewBeanList.get(position).getRightBottomTimes());
-                holder.LeftTopImg.setBackgroundResource(R.drawable.wait);
-                syncImageLoader.loadImage(position, indexListViewBeanList.get(position).getLeftTopImg(), imageLoadListener, StringTools.getFileNameFromUrl(indexListViewBeanList.get(position).getLeftTopImg()));
 
-                holder.RightTopImg.setBackgroundResource(R.drawable.wait);
-                syncImageLoader.loadImage(position, indexListViewBeanList.get(position).getRightTopImg(), imageLoadListener1, StringTools.getFileNameFromUrl(indexListViewBeanList.get(position).getRightTopImg()));
+                holder.LeftTopImg.setImageResource(R.drawable.wait);
+//                syncImageLoader.loadImage(position, indexListViewBeanList.get(position).getLeftTopImg(), imageLoadListener, StringTools.getFileNameFromUrl(indexListViewBeanList.get(position).getLeftTopImg()));
+                mImageLoader.DisplayImage(indexListViewBeanList.get(position).getLeftTopImg(), holder.LeftTopImg, false);
 
-                holder.LeftBottomImg.setBackgroundResource(R.drawable.wait);
-                syncImageLoader.loadImage(position, indexListViewBeanList.get(position).getLeftBottomImg(), imageLoadListener2, StringTools.getFileNameFromUrl(indexListViewBeanList.get(position).getLeftBottomImg()));
+                holder.RightTopImg.setImageResource(R.drawable.wait);
+//                syncImageLoader.loadImage(position, indexListViewBeanList.get(position).getRightTopImg(), imageLoadListener1, StringTools.getFileNameFromUrl(indexListViewBeanList.get(position).getRightTopImg()));
+                mImageLoader.DisplayImage(indexListViewBeanList.get(position).getRightTopImg(), holder.RightTopImg, false);
 
-                holder.RightBottomImg.setBackgroundResource(R.drawable.wait);
-                syncImageLoader.loadImage(position, indexListViewBeanList.get(position).getRightBottomImg(), imageLoadListener3, StringTools.getFileNameFromUrl(indexListViewBeanList.get(position).getRightBottomImg()));
+                holder.LeftBottomImg.setImageResource(R.drawable.wait);
+//                syncImageLoader.loadImage(position, indexListViewBeanList.get(position).getLeftBottomImg(), imageLoadListener2, StringTools.getFileNameFromUrl(indexListViewBeanList.get(position).getLeftBottomImg()));
+                mImageLoader.DisplayImage(indexListViewBeanList.get(position).getLeftBottomImg(), holder.LeftBottomImg, false);
+
+                holder.RightBottomImg.setImageResource(R.drawable.wait);
+//                syncImageLoader.loadImage(position, indexListViewBeanList.get(position).getRightBottomImg(), imageLoadListener3, StringTools.getFileNameFromUrl(indexListViewBeanList.get(position).getRightBottomImg()));
+                mImageLoader.DisplayImage(indexListViewBeanList.get(position).getRightBottomImg(), holder.RightBottomImg, false);
+
             } catch (Exception e) {
                 e.printStackTrace();
                 L.d(e.toString());
