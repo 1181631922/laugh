@@ -12,3 +12,9 @@ periodicalid：update_home时传0  update_home_2down时传最小的期刊id  upd
 3.得到播放网址后需要解析真实播放地址
     video_api/url_to_m3u8.php
     url="视频地址"
+4.下拉刷新，上拉加载更多
+    get_home_videoInfo.php
+  上拉加载
+    devicetype=android，updatetype＝update_home_2down， periodicalid＝｛最小id｝（期刊id）
+  下拉刷新
+    devicetype=android，updatetype＝update_home_2top， periodicalid＝｛最大id｝（期刊id）

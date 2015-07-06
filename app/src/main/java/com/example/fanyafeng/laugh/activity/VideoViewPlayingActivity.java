@@ -201,10 +201,8 @@ public class VideoViewPlayingActivity extends BaseNoActionbarActivity implements
             String scheme = uriPath.getScheme();
             if (null != scheme) {
                 mVideoSource = uriPath.toString();
-//                mVideoSource="http://devimages.apple.com/iphone/samples/bipbop/gear4/prog_index.m3u8";
             } else {
                 mVideoSource = uriPath.getPath();
-//                mVideoSource="http://devimages.apple.com/iphone/samples/bipbop/gear4/prog_index.m3u8";
             }
         }
 
@@ -219,72 +217,6 @@ public class VideoViewPlayingActivity extends BaseNoActionbarActivity implements
         mEventHandler = new EventHandler(mHandlerThread.getLooper());
 
     }
-
-    private void initData() {
-        Thread loadThread = new Thread(new LoadThread());
-        loadThread.start();
-    }
-
-    class LoadThread implements Runnable {
-        @Override
-        public void run() {
-            getRealUrl();
-        }
-    }
-
-    private void getRealUrl() {
-        Map<String, String> map = new LinkedHashMap<>();
-        map.put("url", url_info);
-        try {
-            String backMsg = PostUtil.postData(BaseUrl + GetRealUrl, map);
-            L.d(backMsg);
-            try {
-                JSONObject jsonObject = new JSONObject(backMsg);
-                Message message = Message.obtain();
-                if (jsonObject.getInt("result") == 1) {
-                    JSONObject data = jsonObject.getJSONObject("data");
-                    String img = data.getString("img");
-                    String title = data.getString("title");
-                    m3u8 = data.getString("m3u8");
-                    Bundle bundle = new Bundle();
-                    bundle.putString("img", img);
-                    bundle.putString("title", title);
-                    bundle.putString("m3u8", m3u8);
-                    message.setData(bundle);
-                    message.what = 1;
-                    uiHandler.sendMessage(message);
-
-                } else {
-                    message.what = 0;
-                    uiHandler.sendMessage(message);
-                }
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    Handler uiHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            Bundle bundle = msg.getData();
-            switch (msg.what) {
-                case 0:
-                    T.showLong(VideoViewPlayingActivity.this, "视频解析失败");
-                    break;
-                case 1:
-                    bundle.getString("img");
-                    bundle.getString("m3u8");
-
-                    break;
-            }
-        }
-    };
 
     /**
      * 初始化界面
