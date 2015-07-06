@@ -5,9 +5,9 @@ public class FileManagerUtil {
 
 	public static String getSaveFilePath() {
 		if (CommonUtil.hasSDCard()) {
-			return CommonUtil.getRootFilePath() + "cn.edu.sjzc.fanyafeng/files/";
+			return CommonUtil.getRootFilePath() + "fanyafeng/files/";
 		} else {
-			return CommonUtil.getRootFilePath() + "cn.edu.sjzc.fanyafeng/files";
+			return CommonUtil.getRootFilePath() + "fanyafeng/files";
 		}
 	}
 }

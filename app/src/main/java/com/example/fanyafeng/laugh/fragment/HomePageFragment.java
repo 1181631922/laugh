@@ -3,6 +3,7 @@ package com.example.fanyafeng.laugh.fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -20,14 +21,15 @@ import android.widget.TextView;
 import com.example.fanyafeng.laugh.R;
 import com.example.fanyafeng.laugh.activity.VideoDisplayActivity;
 import com.example.fanyafeng.laugh.activity.VideoListActivity;
+import com.example.fanyafeng.laugh.activity.VideoViewPlayingActivity;
 import com.example.fanyafeng.laugh.bean.IndexListViewBean;
 import com.example.fanyafeng.laugh.bean.IndexUrlBean;
 import com.example.fanyafeng.laugh.layout.PullToRefreshLayout;
 import com.example.fanyafeng.laugh.util.ImageLoaderCache;
 import com.example.fanyafeng.laugh.util.L;
 import com.example.fanyafeng.laugh.util.PostUtil;
-import com.example.fanyafeng.laugh.util.StringTools;
 import com.example.fanyafeng.laugh.util.SyncImageLoader;
+import com.example.fanyafeng.laugh.util.T;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -64,6 +66,7 @@ public class HomePageFragment extends BaseFragment {
     private List<List<Map<String, Object>>> showListList = new ArrayList<List<Map<String, Object>>>();
     private List<Map<String, Object>> showList = new ArrayList<Map<String, Object>>();
     private List<IndexUrlBean> indexUrlBeanList = new ArrayList<>();
+    private String url_info, m3u8;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -116,32 +119,32 @@ public class HomePageFragment extends BaseFragment {
 
                         if (j == 0) {
                             String infoid = videoinfo.getString("id");
-                            indexUrlBean.setLeftTop(videoinfo.getString("url"));
-                            indexListViewBean.setLeftTopTimes("播放次数："+videoinfo.getString("play_number"));
+                            indexUrlBean.setLeftTop(getRealUrl(videoinfo.getString("url")));
+                            indexListViewBean.setLeftTopTimes("播放次数：" + videoinfo.getString("play_number"));
                             indexListViewBean.setLeftTopTitle(videoinfo.getString("title"));
                             String image = videoinfo.getString("image");
                             indexListViewBean.setLeftTopImg("http://video.ktdsp.com/" + image);
                         }
                         if (j == 1) {
                             String infoid = videoinfo.getString("id");
-                            indexUrlBean.setRightTop(videoinfo.getString("url"));
-                            indexListViewBean.setRightTopTimes("播放次数："+videoinfo.getString("play_number"));
+                            indexUrlBean.setRightTop(getRealUrl(videoinfo.getString("url")));
+                            indexListViewBean.setRightTopTimes("播放次数：" + videoinfo.getString("play_number"));
                             indexListViewBean.setRightTopTitle(videoinfo.getString("title"));
                             String image = videoinfo.getString("image");
                             indexListViewBean.setRightTopImg("http://video.ktdsp.com/" + image);
                         }
                         if (j == 2) {
                             String infoid = videoinfo.getString("id");
-                            indexUrlBean.setLeftBottom(videoinfo.getString("url"));
-                            indexListViewBean.setLeftBottomTimes("播放次数："+videoinfo.getString("play_number"));
+                            indexUrlBean.setLeftBottom(getRealUrl(videoinfo.getString("url")));
+                            indexListViewBean.setLeftBottomTimes("播放次数：" + videoinfo.getString("play_number"));
                             indexListViewBean.setLeftBottomTitle(videoinfo.getString("title"));
                             String image = videoinfo.getString("image");
                             indexListViewBean.setLeftBottomImg("http://video.ktdsp.com/" + image);
                         }
                         if (j == 3) {
                             String infoid = videoinfo.getString("id");
-                            indexUrlBean.setRightBottom(videoinfo.getString("url"));
-                            indexListViewBean.setRightBottomTimes("播放次数："+videoinfo.getString("play_number"));
+                            indexUrlBean.setRightBottom(getRealUrl(videoinfo.getString("url")));
+                            indexListViewBean.setRightBottomTimes("播放次数：" + videoinfo.getString("play_number"));
                             indexListViewBean.setRightBottomTitle(videoinfo.getString("title"));
                             String image = videoinfo.getString("image");
                             indexListViewBean.setRightBottomImg("http://video.ktdsp.com/" + image);
@@ -223,6 +226,72 @@ public class HomePageFragment extends BaseFragment {
 
     }
 
+
+
+    class GetUrlThread extends Thread {
+        GetUrlThread(String url_info) {
+            super();
+        }
+        @Override
+        public void run() {
+            getRealUrl(url_info);
+        }
+    }
+
+    private String getRealUrl(String url_info) {
+        Map<String, String> map = new LinkedHashMap<>();
+        map.put("url", url_info);
+        try {
+            String backMsg = PostUtil.postData(BaseUrl + GetRealUrl, map);
+            L.d(backMsg);
+            try {
+                JSONObject jsonObject = new JSONObject(backMsg);
+                Message message = Message.obtain();
+                if (jsonObject.getInt("result") == 1) {
+                    JSONObject data = jsonObject.getJSONObject("data");
+                    String img = data.getString("img");
+                    String title = data.getString("title");
+                    m3u8 = data.getString("m3u8");
+                    Bundle bundle = new Bundle();
+                    bundle.putString("img", img);
+                    bundle.putString("title", title);
+                    bundle.putString("m3u8", m3u8);
+                    message.setData(bundle);
+                    message.what = 1;
+                    uiHandler.sendMessage(message);
+
+                } else {
+                    message.what = 0;
+                    uiHandler.sendMessage(message);
+                }
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return m3u8;
+    }
+
+    Handler uiHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            Bundle bundle = msg.getData();
+            switch (msg.what) {
+                case 0:
+                    T.showLong(getActivity(), "视频解析失败");
+                    break;
+                case 1:
+                    bundle.getString("img");
+                    bundle.getString("m3u8");
+
+                    break;
+            }
+        }
+    };
+
     public class IndexListViewAdapter extends BaseAdapter {
 
         private Context context;
@@ -273,8 +342,8 @@ public class HomePageFragment extends BaseFragment {
                     holder.LeftTopImg.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            Intent intent = new Intent(getActivity(), VideoDisplayActivity.class);
-                            intent.putExtra("url_info", indexUrlBeanList.get(position).getLeftTop());
+                            Intent intent = new Intent(getActivity(), VideoViewPlayingActivity.class);
+                            intent.setData(Uri.parse(indexUrlBeanList.get(position).getLeftTop()));
                             startActivity(intent);
                         }
                     });
@@ -284,8 +353,8 @@ public class HomePageFragment extends BaseFragment {
                     holder.RightTopImg.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            Intent intent = new Intent(getActivity(), VideoDisplayActivity.class);
-                            intent.putExtra("url_info", indexUrlBeanList.get(position).getRightTop());
+                            Intent intent = new Intent(getActivity(), VideoViewPlayingActivity.class);
+                            intent.setData(Uri.parse(indexUrlBeanList.get(position).getRightTop()));
                             startActivity(intent);
                         }
                     });
@@ -295,8 +364,8 @@ public class HomePageFragment extends BaseFragment {
                     holder.LeftBottomImg.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            Intent intent = new Intent(getActivity(), VideoDisplayActivity.class);
-                            intent.putExtra("url_info", indexUrlBeanList.get(position).getLeftBottom());
+                            Intent intent = new Intent(getActivity(), VideoViewPlayingActivity.class);
+                            intent.setData(Uri.parse(indexUrlBeanList.get(position).getLeftBottom()));
                             startActivity(intent);
                         }
                     });
@@ -306,8 +375,8 @@ public class HomePageFragment extends BaseFragment {
                     holder.RightBottomImg.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            Intent intent = new Intent(getActivity(), VideoDisplayActivity.class);
-                            intent.putExtra("url_info", indexUrlBeanList.get(position).getRightBottom());
+                            Intent intent = new Intent(getActivity(), VideoViewPlayingActivity.class);
+                            intent.setData(Uri.parse(indexUrlBeanList.get(position).getRightBottom()));
                             startActivity(intent);
                         }
                     });

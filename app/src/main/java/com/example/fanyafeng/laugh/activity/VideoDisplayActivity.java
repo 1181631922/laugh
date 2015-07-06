@@ -46,7 +46,7 @@ public class VideoDisplayActivity extends BaseNoActionbarActivity {
     private TextView tv_time;
     private int time;
     private Handler handler;
-    private String url_info,m3u8;
+    private String url_info, m3u8;
 
 
     @Override
@@ -62,7 +62,6 @@ public class VideoDisplayActivity extends BaseNoActionbarActivity {
         initData();
 
         bt_play = (Button) findViewById(R.id.bt_play);
-//        bt_play.setEnabled(false);
         bt_pause = (Button) findViewById(R.id.bt_pause);
         bt_stop = (Button) findViewById(R.id.bt_stop);
         bt_replay = (Button) findViewById(R.id.bt_replay);
@@ -206,7 +205,7 @@ public class VideoDisplayActivity extends BaseNoActionbarActivity {
             Bundle bundle = msg.getData();
             switch (msg.what) {
                 case 0:
-                    T.showLong(VideoDisplayActivity.this,"视频解析失败");
+                    T.showLong(VideoDisplayActivity.this, "视频解析失败");
                     break;
                 case 1:
                     bundle.getString("img");
@@ -282,6 +281,7 @@ public class VideoDisplayActivity extends BaseNoActionbarActivity {
         try {
             mediaplayer = new MediaPlayer();
             mediaplayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            mediaplayer.reset();
             mediaplayer.setDisplay(sv_vedio.getHolder());
 
             mediaplayer.setDataSource(m3u8);
@@ -375,8 +375,11 @@ public class VideoDisplayActivity extends BaseNoActionbarActivity {
 
     @Override
     protected void onDestroy() {
-        if (mediaplayer != null)
+        if (mediaplayer != null) {
+            mediaplayer.stop();
             mediaplayer.release();
+            mediaplayer = null;
+        }
         super.onDestroy();
     }
 }
