@@ -68,7 +68,6 @@ public class IndexListViewAdapter extends BaseAdapter {
             holder.LeftTopImg.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-//                    Toast.makeText(context, "32个赞！", Toast.LENGTH_SHORT).show();
                     Intent it_my_activity = new Intent(Intent.ACTION_CALL);
                     it_my_activity.setClass(context, VideoDisplayActivity.class);
                     context.startActivity(it_my_activity);

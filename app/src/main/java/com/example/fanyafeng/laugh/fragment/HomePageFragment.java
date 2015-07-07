@@ -47,6 +47,8 @@ public class HomePageFragment extends BaseFragment {
     private ListView listView;
     private IndexListViewAdapter indexListViewAdapter;
     private List<IndexListViewBean> indexListViewBeanList = new ArrayList<IndexListViewBean>();
+    private List<IndexListViewBean> indexListViewBeanList_loadmore = new ArrayList<IndexListViewBean>();
+    private List<IndexListViewBean> indexListViewBeanList_final = new ArrayList<IndexListViewBean>();
     private String url = "http://a.hiphotos.baidu.com/image/pic/item/b3119313b07eca8045c14945932397dda044834f.jpg";
     private ProgressBar progressBar;
     private String Title;
@@ -62,11 +64,13 @@ public class HomePageFragment extends BaseFragment {
     private String RightBottomImg;
     private String RightBottomTitle;
     private String RightBottomTimes;
-    private IndexUrlBean indexUrlBean;
     private List<List<Map<String, Object>>> showListList = new ArrayList<List<Map<String, Object>>>();
     private List<Map<String, Object>> showList = new ArrayList<Map<String, Object>>();
     private List<IndexUrlBean> indexUrlBeanList = new ArrayList<>();
+    private List<IndexUrlBean> indexUrlBeanList_more = new ArrayList<>();
     private String MinId, m3u8;
+    private IndexUrlBean indexUrlBean = new IndexUrlBean(0, null, null, null, null);
+    private Handler handler1;
 
 
     @Override
@@ -79,7 +83,6 @@ public class HomePageFragment extends BaseFragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         initView();
-        progressBar.setVisibility(View.VISIBLE);
         Thread loadThread = new Thread(new LoadThread());
         loadThread.start();
     }
@@ -110,7 +113,6 @@ public class HomePageFragment extends BaseFragment {
                     String name = periodicalinfo.getString("name");
                     indexListViewBean.setTitle(name);
                     JSONArray video = periodicalinfo.getJSONArray("video");
-                    IndexUrlBean indexUrlBean = new IndexUrlBean(0, null, null, null, null);
                     indexUrlBean.setPosition(i);
                     for (int j = 0; j < video.length(); j++) {
                         JSONObject videoinfo = video.getJSONObject(j);
@@ -144,7 +146,11 @@ public class HomePageFragment extends BaseFragment {
                         }
                     }
                     indexUrlBeanList.add(indexUrlBean);
-                    indexListViewBeanList.add(indexListViewBean);
+                    if (minid.equals("0")) {
+                        indexListViewBeanList.add(indexListViewBean);
+                    } else {
+                        indexListViewBeanList_loadmore.add(indexListViewBean);
+                    }
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -155,7 +161,11 @@ public class HomePageFragment extends BaseFragment {
         Message message = Message.obtain();
         message.what = 0;
         message.obj = minid;
-        handler.sendMessage(message);
+        if (message.obj.equals("0")) {
+            handler.sendMessage(message);
+        } else {
+            handler1.sendMessage(message);
+        }
         return MinId;
     }
 
@@ -166,11 +176,13 @@ public class HomePageFragment extends BaseFragment {
             switch (msg.what) {
                 case 0:
                     if (msg.obj.equals("0")) {
-                        progressBar.setVisibility(View.GONE);
-                        indexListViewAdapter.notifyDataSetChanged();
-                    } else {
                         indexListViewAdapter.notifyDataSetChanged();
                     }
+//                    else {
+//                        indexListViewBeanList.addAll(indexListViewBeanList_loadmore);
+//                        indexUrlBeanList.addAll(indexUrlBeanList_more);
+//                        indexListViewAdapter.notifyDataSetChanged();
+//                    }
                     break;
                 case 1:
                     break;
@@ -206,10 +218,9 @@ public class HomePageFragment extends BaseFragment {
                 @Override
                 public void handleMessage(Message msg) {
 
-
                     pullToRefreshLayout.refreshFinish(PullToRefreshLayout.SUCCEED);
                 }
-            }.sendEmptyMessageDelayed(0, 2000);
+            }.sendEmptyMessageDelayed(0, 500);
         }
 
         @Override
@@ -217,15 +228,33 @@ public class HomePageFragment extends BaseFragment {
             new Handler() {
                 @Override
                 public void handleMessage(Message msg) {
-
                     Thread lodeMore = new Thread(new LoadMore());
                     lodeMore.start();
 
-//                    indexListViewAdapter.notifyDataSetChanged();
+                    handler1 = new Handler() {
+                        @Override
+                        public void handleMessage(Message msg) {
+                            super.handleMessage(msg);
+                            switch (msg.what) {
+                                case 0:
+                                    if (!msg.obj.equals("0")) {
+                                        indexListViewBeanList.addAll(indexListViewBeanList_loadmore);
+                                        indexUrlBeanList.addAll(indexUrlBeanList_more);
+                                        indexListViewAdapter.notifyDataSetChanged();
+                                        pullToRefreshLayout.loadmoreFinish(PullToRefreshLayout.SUCCEED);
+                                    }
+                                    break;
+                            }
 
-                    pullToRefreshLayout.loadmoreFinish(PullToRefreshLayout.SUCCEED);
+                        }
+                    };
+
+//                    indexListViewBeanList.addAll(indexListViewBeanList_loadmore);
+//                    indexUrlBeanList.addAll(indexUrlBeanList_more);
+//                    indexListViewAdapter.notifyDataSetChanged();
+//                    pullToRefreshLayout.loadmoreFinish(PullToRefreshLayout.SUCCEED);
                 }
-            }.sendEmptyMessageDelayed(0, 2000);
+            }.sendEmptyMessageDelayed(0, 500);
         }
 
     }
