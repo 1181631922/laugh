@@ -4,10 +4,12 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -15,7 +17,11 @@ import android.widget.Toast;
 
 import com.example.fanyafeng.laugh.R;
 import com.example.fanyafeng.laugh.activity.VideoDisplayActivity;
+import com.example.fanyafeng.laugh.activity.VideoListActivity;
+import com.example.fanyafeng.laugh.activity.VideoViewPlayingActivity;
 import com.example.fanyafeng.laugh.bean.IndexListViewBean;
+import com.example.fanyafeng.laugh.bean.IndexUrlBean;
+import com.example.fanyafeng.laugh.util.ImageLoaderCache;
 import com.example.fanyafeng.laugh.util.L;
 import com.example.fanyafeng.laugh.util.StringTools;
 import com.example.fanyafeng.laugh.util.SyncImageLoader;
@@ -29,14 +35,21 @@ public class IndexListViewAdapter extends BaseAdapter {
 
     private Context context;
     private List<IndexListViewBean> indexListViewBeanList;
-    private ListView listView;
-    SyncImageLoader syncImageLoader;
+    private List<IndexUrlBean> indexUrlBean;
 
-    public IndexListViewAdapter(Context context, List<IndexListViewBean> indexListViewBeanList, ListView listView) {
+    //缓存到本地sd卡，并且可以更新ListView图片
+    private ImageLoaderCache mImageLoader;
+
+
+    public IndexListViewAdapter(Context context, List<IndexListViewBean> indexListViewBeanList, List<IndexUrlBean> indexUrlBean) {
         this.context = context;
         this.indexListViewBeanList = indexListViewBeanList;
-        this.listView = listView;
-        syncImageLoader = new SyncImageLoader();
+        this.indexUrlBean = indexUrlBean;
+        mImageLoader = new ImageLoaderCache(context);
+    }
+
+    public ImageLoaderCache getImagerLoader() {
+        return mImageLoader;
     }
 
     @Override
@@ -56,155 +69,98 @@ public class IndexListViewAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        try {
+        View view = convertView;
         ViewHolder holder = null;
-        if (convertView != null) {
-            holder = (ViewHolder) convertView.getTag();
-        } else {
-            convertView = LayoutInflater.from(context).inflate(R.layout.item_fragment_homepage, null);
+        if (view == null) {
+            view = LayoutInflater.from(context).inflate(R.layout.item_fragment_homepage, null);
             holder = new ViewHolder();
-            holder.Title = (TextView) convertView.findViewById(R.id.index_title);
-            holder.LeftTopImg = (ImageView) convertView.findViewById(R.id.index_left_up_iv);
+            view.setTag(holder);
+            holder.Title = (TextView) view.findViewById(R.id.index_title);
+            holder.LeftTopImg = (ImageView) view.findViewById(R.id.index_left_up_iv);
             holder.LeftTopImg.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent it_my_activity = new Intent(Intent.ACTION_CALL);
-                    it_my_activity.setClass(context, VideoDisplayActivity.class);
-                    context.startActivity(it_my_activity);
+//                    Intent intent = new Intent(getActivity(), VideoViewPlayingActivity.class);
+//                    intent.setData(Uri.parse(indexUrlBean.get(position).getLeftTop()));
+//                    L.d(indexUrlBean.get(position).getLeftTop());
+//                    startActivity(intent);
                 }
             });
-            holder.LeftTopTitle = (TextView) convertView.findViewById(R.id.index_left_up_tv);
-            holder.LeftTopTimes = (TextView) convertView.findViewById(R.id.index_left_up_time);
-            holder.RightTopImg = (ImageView) convertView.findViewById(R.id.index_right_up_iv);
+            holder.LeftTopTitle = (TextView) view.findViewById(R.id.index_left_up_tv);
+            holder.LeftTopTimes = (TextView) view.findViewById(R.id.index_left_up_time);
+            holder.RightTopImg = (ImageView) view.findViewById(R.id.index_right_up_iv);
             holder.RightTopImg.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
+//                    Intent intent = new Intent(getActivity(), VideoViewPlayingActivity.class);
+//                    intent.setData(Uri.parse(indexUrlBean.get(position).getRightTop()));
+//                    startActivity(intent);
                 }
             });
-            holder.RightTopTitle = (TextView) convertView.findViewById(R.id.index_right_up_tv);
-            holder.RightTopTimes = (TextView) convertView.findViewById(R.id.index_right_up_time);
-            holder.LeftBottomImg = (ImageView) convertView.findViewById(R.id.index_left_down_iv);
+            holder.RightTopTitle = (TextView) view.findViewById(R.id.index_right_up_tv);
+            holder.RightTopTimes = (TextView) view.findViewById(R.id.index_right_up_time);
+            holder.LeftBottomImg = (ImageView) view.findViewById(R.id.index_left_down_iv);
             holder.LeftBottomImg.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
+//                    Intent intent = new Intent(getActivity(), VideoViewPlayingActivity.class);
+//                    intent.setData(Uri.parse(indexUrlBean.get(position).getLeftBottom()));
+//                    startActivity(intent);
                 }
             });
-            holder.LeftBottomTitle = (TextView) convertView.findViewById(R.id.index_left_down_tv);
-            holder.LeftBottomTimes = (TextView) convertView.findViewById(R.id.index_left_down_time);
-            holder.RightBottomImg = (ImageView) convertView.findViewById(R.id.index_right_down_iv);
+            holder.LeftBottomTitle = (TextView) view.findViewById(R.id.index_left_down_tv);
+            holder.LeftBottomTimes = (TextView) view.findViewById(R.id.index_left_down_time);
+            holder.RightBottomImg = (ImageView) view.findViewById(R.id.index_right_down_iv);
             holder.RightBottomImg.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
+//                    Intent intent = new Intent(getActivity(), VideoViewPlayingActivity.class);
+//                    intent.setData(Uri.parse(indexUrlBean.get(position).getRightBottom()));
+//                    startActivity(intent);
                 }
             });
-            holder.RightBottomTitle = (TextView) convertView.findViewById(R.id.index_right_down_tv);
-            holder.RightBottomTimes = (TextView) convertView.findViewById(R.id.index_right_down_time);
+            holder.RightBottomTitle = (TextView) view.findViewById(R.id.index_right_down_tv);
+            holder.RightBottomTimes = (TextView) view.findViewById(R.id.index_right_down_time);
+            holder.index_more_but = (Button) view.findViewById(R.id.index_more_but);
+            holder.index_more_but.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+//                    Intent intent = new Intent(getActivity(), VideoListActivity.class);
+//
+//                    startActivity(intent);
+                }
+            });
+        } else {
+            holder = (ViewHolder) convertView.getTag();
         }
-        convertView.setTag(position);
-            holder.Title.setText(indexListViewBeanList.get(position).getTitle());
-            holder.LeftTopTitle.setText(indexListViewBeanList.get(position).getLeftTopTitle());
-            holder.LeftTopTimes.setText(indexListViewBeanList.get(position).getLeftTopTimes());
-            holder.RightTopTitle.setText(indexListViewBeanList.get(position).getRightTopTitle());
-            holder.RightTopTimes.setText(indexListViewBeanList.get(position).getRightTopTimes());
-            holder.LeftBottomTitle.setText(indexListViewBeanList.get(position).getLeftBottomTimes());
-            holder.LeftBottomTimes.setText(indexListViewBeanList.get(position).getLeftBottomTimes());
-            holder.RightBottomTitle.setText(indexListViewBeanList.get(position).getRightBottomTitle());
-            holder.RightBottomTimes.setText(indexListViewBeanList.get(position).getRightBottomTimes());
-        holder.LeftTopImg.setBackgroundResource(R.drawable.wait);
-        syncImageLoader.loadImage(position,indexListViewBeanList.get(position).getLeftTopImg(),imageLoadListener, StringTools.getFileNameFromUrl(indexListViewBeanList.get(position).getLeftTopImg()));
+        holder.Title.setText(indexListViewBeanList.get(position).getTitle());
+        holder.LeftTopTitle.setText(indexListViewBeanList.get(position).getLeftTopTitle());
+        holder.LeftTopTimes.setText(indexListViewBeanList.get(position).getLeftTopTimes());
+        holder.RightTopTitle.setText(indexListViewBeanList.get(position).getRightTopTitle());
+        holder.RightTopTimes.setText(indexListViewBeanList.get(position).getRightTopTimes());
+        holder.LeftBottomTitle.setText(indexListViewBeanList.get(position).getLeftBottomTitle());
+        holder.LeftBottomTimes.setText(indexListViewBeanList.get(position).getLeftBottomTimes());
+        holder.RightBottomTitle.setText(indexListViewBeanList.get(position).getRightBottomTitle());
+        holder.RightBottomTimes.setText(indexListViewBeanList.get(position).getRightBottomTimes());
 
-        holder.RightTopImg.setBackgroundResource(R.drawable.wait);
-        syncImageLoader.loadImage(position,indexListViewBeanList.get(position).getRightTopImg(),imageLoadListener1, StringTools.getFileNameFromUrl(indexListViewBeanList.get(position).getRightTopImg()));
+        holder.LeftTopImg.setImageResource(R.drawable.wait);
+        mImageLoader.DisplayImage(indexListViewBeanList.get(position).getLeftTopImg(), holder.LeftTopImg, false);
 
-        holder.LeftBottomImg.setBackgroundResource(R.drawable.wait);
-        syncImageLoader.loadImage(position,indexListViewBeanList.get(position).getLeftBottomImg(),imageLoadListener2, StringTools.getFileNameFromUrl(indexListViewBeanList.get(position).getLeftBottomImg()));
+        holder.RightTopImg.setImageResource(R.drawable.wait);
+        mImageLoader.DisplayImage(indexListViewBeanList.get(position).getRightTopImg(), holder.RightTopImg, false);
 
-        holder.RightBottomImg.setBackgroundResource(R.drawable.wait);
-        syncImageLoader.loadImage(position,indexListViewBeanList.get(position).getRightBottomImg(),imageLoadListener3, StringTools.getFileNameFromUrl(indexListViewBeanList.get(position).getRightBottomImg()));
-    } catch (Exception e) {
-        e.printStackTrace();
-        L.d(e.toString());
+        holder.LeftBottomImg.setImageResource(R.drawable.wait);
+        mImageLoader.DisplayImage(indexListViewBeanList.get(position).getLeftBottomImg(), holder.LeftBottomImg, false);
+
+        holder.RightBottomImg.setImageResource(R.drawable.wait);
+        mImageLoader.DisplayImage(indexListViewBeanList.get(position).getRightBottomImg(), holder.RightBottomImg, false);
+
+        return view;
     }
-        return convertView;
-    }
-
-    SyncImageLoader.OnImageLoadListener imageLoadListener = new SyncImageLoader.OnImageLoadListener() {
-        @Override
-        public void onImageLoad(Integer t, Drawable drawable) {
-            try {
-                View view = listView.findViewWithTag(t);
-                if (view != null) {
-                    ImageView imageView = (ImageView) view.findViewById(R.id.index_left_up_iv);
-                    imageView.setBackground(drawable);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        @Override
-        public void onError(Integer t) {
-        }
-    };
-
-    SyncImageLoader.OnImageLoadListener imageLoadListener1 = new SyncImageLoader.OnImageLoadListener() {
-        @Override
-        public void onImageLoad(Integer t, Drawable drawable) {
-            try {
-                View view = listView.findViewWithTag(t);
-                if (view != null) {
-                    ImageView imageView = (ImageView) view.findViewById(R.id.index_right_up_iv);
-                    imageView.setBackground(drawable);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        @Override
-        public void onError(Integer t) {
-        }
-    };
-
-    SyncImageLoader.OnImageLoadListener imageLoadListener2 = new SyncImageLoader.OnImageLoadListener() {
-        @Override
-        public void onImageLoad(Integer t, Drawable drawable) {
-            try {
-                View view = listView.findViewWithTag(t);
-                if (view != null) {
-                    ImageView imageView = (ImageView) view.findViewById(R.id.index_left_down_iv);
-                    imageView.setBackground(drawable);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        @Override
-        public void onError(Integer t) {
-        }
-    };
-
-    SyncImageLoader.OnImageLoadListener imageLoadListener3 = new SyncImageLoader.OnImageLoadListener() {
-        @Override
-        public void onImageLoad(Integer t, Drawable drawable) {
-            try {
-                View view = listView.findViewWithTag(t);
-                if (view != null) {
-                    ImageView imageView = (ImageView) view.findViewById(R.id.index_right_down_iv);
-                    imageView.setBackground(drawable);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        @Override
-        public void onError(Integer t) {
-        }
-    };
 
 
-    static class ViewHolder {
+
+    class ViewHolder {
         TextView Title;
         ImageView LeftTopImg;
         TextView LeftTopTitle;
@@ -218,5 +174,8 @@ public class IndexListViewAdapter extends BaseAdapter {
         ImageView RightBottomImg;
         TextView RightBottomTitle;
         TextView RightBottomTimes;
+        Button index_more_but;
     }
+
+
 }

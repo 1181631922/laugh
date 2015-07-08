@@ -5,35 +5,43 @@ import com.example.fanyafeng.laugh.util.S;
 /**
  * Created by fanyafeng on 2015/6/30.
  */
-public class IndexListViewBean  extends BaseBean  {
+public class IndexListViewBean extends BaseBean {
     private String Title;
     private String LeftTopImg;
     private String LeftTopTitle;
     private String LeftTopTimes;
+    private String LeftTopUrl;
     private String RightTopImg;
     private String RightTopTitle;
     private String RightTopTimes;
+    private String RightTopUrl;
     private String LeftBottomImg;
     private String LeftBottomTitle;
     private String LeftBottomTimes;
+    private String LeftBottonUrl;
     private String RightBottomImg;
     private String RightBottomTitle;
     private String RightBottomTimes;
+    private String RightBottonUrl;
 
-    public IndexListViewBean(String title, String leftTopImg, String leftTopTitle, String leftTopTimes, String rightTopImg, String rightTopTitle, String rightTopTimes, String leftBottomImg, String leftBottomTitle, String leftBottomTimes, String rightBottomImg, String rightBottomTitle, String rightBottomTimes) {
+    public IndexListViewBean(String title, String leftTopImg, String leftTopTitle, String leftTopTimes, String leftTopUrl, String rightTopImg, String rightTopTitle, String rightTopTimes, String rightTopUrl, String leftBottomImg, String leftBottomTitle, String leftBottomTimes, String leftBottonUrl, String rightBottomImg, String rightBottomTitle, String rightBottomTimes, String rightBottonUrl) {
         Title = title;
         LeftTopImg = leftTopImg;
         LeftTopTitle = leftTopTitle;
         LeftTopTimes = leftTopTimes;
+        LeftTopUrl = leftTopUrl;
         RightTopImg = rightTopImg;
         RightTopTitle = rightTopTitle;
         RightTopTimes = rightTopTimes;
+        RightTopUrl = rightTopUrl;
         LeftBottomImg = leftBottomImg;
         LeftBottomTitle = leftBottomTitle;
         LeftBottomTimes = leftBottomTimes;
+        LeftBottonUrl = leftBottonUrl;
         RightBottomImg = rightBottomImg;
         RightBottomTitle = rightBottomTitle;
         RightBottomTimes = rightBottomTimes;
+        RightBottonUrl = rightBottonUrl;
     }
 
     public String getTitle() {
@@ -68,6 +76,14 @@ public class IndexListViewBean  extends BaseBean  {
         LeftTopTimes = leftTopTimes;
     }
 
+    public String getLeftTopUrl() {
+        return LeftTopUrl;
+    }
+
+    public void setLeftTopUrl(String leftTopUrl) {
+        LeftTopUrl = leftTopUrl;
+    }
+
     public String getRightTopImg() {
         return RightTopImg;
     }
@@ -90,6 +106,14 @@ public class IndexListViewBean  extends BaseBean  {
 
     public void setRightTopTimes(String rightTopTimes) {
         RightTopTimes = rightTopTimes;
+    }
+
+    public String getRightTopUrl() {
+        return RightTopUrl;
+    }
+
+    public void setRightTopUrl(String rightTopUrl) {
+        RightTopUrl = rightTopUrl;
     }
 
     public String getLeftBottomImg() {
@@ -116,6 +140,14 @@ public class IndexListViewBean  extends BaseBean  {
         LeftBottomTimes = leftBottomTimes;
     }
 
+    public String getLeftBottonUrl() {
+        return LeftBottonUrl;
+    }
+
+    public void setLeftBottonUrl(String leftBottonUrl) {
+        LeftBottonUrl = leftBottonUrl;
+    }
+
     public String getRightBottomImg() {
         return RightBottomImg;
     }
@@ -140,6 +172,14 @@ public class IndexListViewBean  extends BaseBean  {
         RightBottomTimes = rightBottomTimes;
     }
 
+    public String getRightBottonUrl() {
+        return RightBottonUrl;
+    }
+
+    public void setRightBottonUrl(String rightBottonUrl) {
+        RightBottonUrl = rightBottonUrl;
+    }
+
     @Override
     public String toString() {
         return "IndexListViewBean{" +
@@ -147,15 +187,20 @@ public class IndexListViewBean  extends BaseBean  {
                 ", LeftTopImg='" + LeftTopImg + '\'' +
                 ", LeftTopTitle='" + LeftTopTitle + '\'' +
                 ", LeftTopTimes='" + LeftTopTimes + '\'' +
+                ", LeftTopUrl='" + LeftTopUrl + '\'' +
                 ", RightTopImg='" + RightTopImg + '\'' +
                 ", RightTopTitle='" + RightTopTitle + '\'' +
                 ", RightTopTimes='" + RightTopTimes + '\'' +
+                ", RightTopUrl='" + RightTopUrl + '\'' +
                 ", LeftBottomImg='" + LeftBottomImg + '\'' +
                 ", LeftBottomTitle='" + LeftBottomTitle + '\'' +
                 ", LeftBottomTimes='" + LeftBottomTimes + '\'' +
+                ", LeftBottonUrl='" + LeftBottonUrl + '\'' +
                 ", RightBottomImg='" + RightBottomImg + '\'' +
                 ", RightBottomTitle='" + RightBottomTitle + '\'' +
                 ", RightBottomTimes='" + RightBottomTimes + '\'' +
+                ", RightBottonUrl='" + RightBottonUrl + '\'' +
                 '}';
     }
 }
+

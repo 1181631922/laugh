@@ -2,11 +2,14 @@ package com.example.fanyafeng.laugh.fragment;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.util.LruCache;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +30,7 @@ import com.example.fanyafeng.laugh.bean.IndexUrlBean;
 import com.example.fanyafeng.laugh.layout.PullToRefreshLayout;
 import com.example.fanyafeng.laugh.util.ImageLoaderCache;
 import com.example.fanyafeng.laugh.util.L;
+import com.example.fanyafeng.laugh.util.ListViewImageTaskUtil;
 import com.example.fanyafeng.laugh.util.PostUtil;
 import com.example.fanyafeng.laugh.util.SyncImageLoader;
 import com.example.fanyafeng.laugh.util.T;
@@ -49,28 +53,14 @@ public class HomePageFragment extends BaseFragment {
     private List<IndexListViewBean> indexListViewBeanList = new ArrayList<IndexListViewBean>();
     private List<IndexListViewBean> indexListViewBeanList_loadmore = new ArrayList<IndexListViewBean>();
     private List<IndexListViewBean> indexListViewBeanList_final = new ArrayList<IndexListViewBean>();
-    private String url = "http://a.hiphotos.baidu.com/image/pic/item/b3119313b07eca8045c14945932397dda044834f.jpg";
     private ProgressBar progressBar;
-    private String Title;
-    private String LeftTopImg;
-    private String LeftTopTitle;
-    private String LeftTopTimes;
-    private String RightTopImg;
-    private String RightTopTitle;
-    private String RightTopTimes;
-    private String LeftBottomImg;
-    private String LeftBottomTitle;
-    private String LeftBottomTimes;
-    private String RightBottomImg;
-    private String RightBottomTitle;
-    private String RightBottomTimes;
     private List<List<Map<String, Object>>> showListList = new ArrayList<List<Map<String, Object>>>();
     private List<Map<String, Object>> showList = new ArrayList<Map<String, Object>>();
-    private List<IndexUrlBean> indexUrlBeanList = new ArrayList<>();
-    private List<IndexUrlBean> indexUrlBeanList_more = new ArrayList<>();
-    private String MinId, m3u8;
-    private IndexUrlBean indexUrlBean = new IndexUrlBean(0, null, null, null, null);
-    private Handler handler1;
+    private List<IndexUrlBean> indexUrlBeanList = new ArrayList<IndexUrlBean>();
+    private List<IndexUrlBean> indexUrlBeanList_more = new ArrayList<IndexUrlBean>();
+    private String MinId, m3u8, MaxId;
+    //    private IndexUrlBean indexUrlBean = new IndexUrlBean(0, null, null, null, null);
+    private Handler handler1, handler2;
 
 
     @Override
@@ -78,6 +68,7 @@ public class HomePageFragment extends BaseFragment {
         View view = inflater.inflate(R.layout.fragment_homepage, container, false);
         return view;
     }
+
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -94,11 +85,11 @@ public class HomePageFragment extends BaseFragment {
         }
     }
 
-    private String loadData(String updatetype, String minid) {
+    private String loadData(String updatetype, String id) {
         Map<String, String> map = new LinkedHashMap<String, String>();
         map.put("devicetype", "android");
         map.put("updatetype", updatetype);
-        map.put("periodicalid", minid);
+        map.put("periodicalid", id);
         try {
             String backMsg = PostUtil.postData(BaseUrl + GetHomeInfo, map);
             L.d(backMsg.toString());
@@ -106,14 +97,20 @@ public class HomePageFragment extends BaseFragment {
                 JSONObject jsonObject = new JSONObject(backMsg);
                 JSONArray periodical = jsonObject.getJSONArray("periodical");
                 L.d(periodical.toString());
+                indexUrlBeanList_more.clear();
+                indexListViewBeanList_loadmore.clear();
                 for (int i = 0; i < periodical.length(); i++) {
-                    IndexListViewBean indexListViewBean = new IndexListViewBean(Title, LeftTopImg, LeftTopTitle, LeftTopTimes, RightTopImg, RightTopTitle, RightTopTimes, LeftBottomImg, LeftBottomTitle, LeftBottomTimes, RightBottomImg, RightBottomTitle, RightBottomTimes);
+                    IndexListViewBean indexListViewBean = new IndexListViewBean(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
                     JSONObject periodicalinfo = periodical.getJSONObject(i);
+                    if (id.equals("0") && i == 0) {
+                        MaxId = periodicalinfo.getString("id");
+                        L.d("最大的id", MaxId);
+                    }
                     MinId = periodicalinfo.getString("id");
+                    L.d("最小的id", MinId);
                     String name = periodicalinfo.getString("name");
                     indexListViewBean.setTitle(name);
                     JSONArray video = periodicalinfo.getJSONArray("video");
-                    indexUrlBean.setPosition(i);
                     for (int j = 0; j < video.length(); j++) {
                         JSONObject videoinfo = video.getJSONObject(j);
                         Map<String, Object> urlmap = new HashMap<String, Object>();
@@ -121,32 +118,31 @@ public class HomePageFragment extends BaseFragment {
                         showList.add(urlmap);
 
                         if (j == 0) {
-                            indexUrlBean.setLeftTop(getRealUrl(videoinfo.getString("url")));
+                            indexListViewBean.setLeftTopUrl(videoinfo.getString("url"));
                             indexListViewBean.setLeftTopTimes("播放次数：" + videoinfo.getString("play_number"));
                             indexListViewBean.setLeftTopTitle(videoinfo.getString("title"));
-                            indexListViewBean.setLeftTopImg("http://video.ktdsp.com/" + videoinfo.getString("image"));
+                            indexListViewBean.setLeftTopImg(BaseUrl + videoinfo.getString("image"));
                         }
                         if (j == 1) {
-                            indexUrlBean.setRightTop(getRealUrl(videoinfo.getString("url")));
+                            indexListViewBean.setRightTopUrl(videoinfo.getString("url"));
                             indexListViewBean.setRightTopTimes("播放次数：" + videoinfo.getString("play_number"));
                             indexListViewBean.setRightTopTitle(videoinfo.getString("title"));
-                            indexListViewBean.setRightTopImg("http://video.ktdsp.com/" + videoinfo.getString("image"));
+                            indexListViewBean.setRightTopImg(BaseUrl + videoinfo.getString("image"));
                         }
                         if (j == 2) {
-                            indexUrlBean.setLeftBottom(getRealUrl(videoinfo.getString("url")));
+                            indexListViewBean.setLeftBottonUrl(videoinfo.getString("url"));
                             indexListViewBean.setLeftBottomTimes("播放次数：" + videoinfo.getString("play_number"));
                             indexListViewBean.setLeftBottomTitle(videoinfo.getString("title"));
-                            indexListViewBean.setLeftBottomImg("http://video.ktdsp.com/" + videoinfo.getString("image"));
+                            indexListViewBean.setLeftBottomImg(BaseUrl + videoinfo.getString("image"));
                         }
                         if (j == 3) {
-                            indexUrlBean.setRightBottom(getRealUrl(videoinfo.getString("url")));
+                            indexListViewBean.setRightBottonUrl(videoinfo.getString("url"));
                             indexListViewBean.setRightBottomTimes("播放次数：" + videoinfo.getString("play_number"));
                             indexListViewBean.setRightBottomTitle(videoinfo.getString("title"));
-                            indexListViewBean.setRightBottomImg("http://video.ktdsp.com/" + videoinfo.getString("image"));
+                            indexListViewBean.setRightBottomImg(BaseUrl + videoinfo.getString("image"));
                         }
                     }
-                    indexUrlBeanList.add(indexUrlBean);
-                    if (minid.equals("0")) {
+                    if (id.equals("0")) {
                         indexListViewBeanList.add(indexListViewBean);
                     } else {
                         indexListViewBeanList_loadmore.add(indexListViewBean);
@@ -160,12 +156,93 @@ public class HomePageFragment extends BaseFragment {
         }
         Message message = Message.obtain();
         message.what = 0;
-        message.obj = minid;
+        message.obj = id;
         if (message.obj.equals("0")) {
             handler.sendMessage(message);
         } else {
             handler1.sendMessage(message);
         }
+        return MinId;
+    }
+
+    private String refreshData(String updatetype, String id) {
+        Map<String, String> map = new LinkedHashMap<String, String>();
+        map.put("devicetype", "android");
+        map.put("updatetype", updatetype);
+        map.put("periodicalid", id);
+        try {
+            String backMsg = PostUtil.postData(BaseUrl + GetHomeInfo, map);
+            L.d(backMsg.toString());
+            try {
+                JSONObject jsonObject = new JSONObject(backMsg);
+                JSONArray periodical = jsonObject.getJSONArray("periodical");
+                L.d(periodical.toString());
+                if (periodical.toString().equals("[]")) {
+                    Message message = Message.obtain();
+                    message.what = 0;
+                    handler2.sendMessage(message);
+                } else {
+                    for (int i = 0; i < periodical.length(); i++) {
+                        IndexListViewBean indexListViewBean = new IndexListViewBean(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+                        IndexUrlBean indexUrlBean = new IndexUrlBean(0, null, null, null, null);
+                        JSONObject periodicalinfo = periodical.getJSONObject(i);
+                        if (id.equals("0") && i == 0) {
+                            MaxId = periodicalinfo.getString("id");
+                            L.d("最大的id", MaxId);
+                        }
+                        MinId = periodicalinfo.getString("id");
+                        String name = periodicalinfo.getString("name");
+                        indexListViewBean.setTitle(name);
+                        JSONArray video = periodicalinfo.getJSONArray("video");
+                        indexUrlBean.setPosition(i);
+                        for (int j = 0; j < video.length(); j++) {
+                            JSONObject videoinfo = video.getJSONObject(j);
+                            Map<String, Object> urlmap = new HashMap<String, Object>();
+                            urlmap.put("urlmap", (String) videoinfo.getString("url"));
+                            showList.add(urlmap);
+
+                            if (j == 0) {
+                                indexListViewBean.setLeftTopUrl(videoinfo.getString("url"));
+                                indexListViewBean.setLeftTopTimes("播放次数：" + videoinfo.getString("play_number"));
+                                indexListViewBean.setLeftTopTitle(videoinfo.getString("title"));
+                                indexListViewBean.setLeftTopImg("http://video.ktdsp.com/" + videoinfo.getString("image"));
+                            }
+                            if (j == 1) {
+                                indexListViewBean.setRightTopUrl(videoinfo.getString("url"));
+                                indexListViewBean.setRightTopTimes("播放次数：" + videoinfo.getString("play_number"));
+                                indexListViewBean.setRightTopTitle(videoinfo.getString("title"));
+                                indexListViewBean.setRightTopImg("http://video.ktdsp.com/" + videoinfo.getString("image"));
+                            }
+                            if (j == 2) {
+                                indexListViewBean.setLeftBottonUrl(videoinfo.getString("url"));
+                                indexListViewBean.setLeftBottomTimes("播放次数：" + videoinfo.getString("play_number"));
+                                indexListViewBean.setLeftBottomTitle(videoinfo.getString("title"));
+                                indexListViewBean.setLeftBottomImg("http://video.ktdsp.com/" + videoinfo.getString("image"));
+                            }
+                            if (j == 3) {
+                                indexListViewBean.setRightBottonUrl(videoinfo.getString("url"));
+                                indexListViewBean.setRightBottomTimes("播放次数：" + videoinfo.getString("play_number"));
+                                indexListViewBean.setRightBottomTitle(videoinfo.getString("title"));
+                                indexListViewBean.setRightBottomImg("http://video.ktdsp.com/" + videoinfo.getString("image"));
+                            }
+                        }
+                        indexUrlBeanList.clear();
+                        indexListViewBeanList.clear();
+                        indexUrlBeanList.add(indexUrlBean);
+                        indexListViewBeanList.add(indexListViewBean);
+                        Message message = Message.obtain();
+                        message.what = 0;
+                        handler2.sendMessage(message);
+                    }
+                }
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         return MinId;
     }
 
@@ -176,13 +253,8 @@ public class HomePageFragment extends BaseFragment {
             switch (msg.what) {
                 case 0:
                     if (msg.obj.equals("0")) {
-                        indexListViewAdapter.notifyDataSetChanged();
+                        indexListViewAdapter.update();
                     }
-//                    else {
-//                        indexListViewBeanList.addAll(indexListViewBeanList_loadmore);
-//                        indexUrlBeanList.addAll(indexUrlBeanList_more);
-//                        indexListViewAdapter.notifyDataSetChanged();
-//                    }
                     break;
                 case 1:
                     break;
@@ -217,7 +289,21 @@ public class HomePageFragment extends BaseFragment {
             new Handler() {
                 @Override
                 public void handleMessage(Message msg) {
-
+                    Thread refresh = new Thread(new Refresh());
+                    refresh.start();
+                    handler2 = new Handler() {
+                        @Override
+                        public void handleMessage(Message msg) {
+                            super.handleMessage(msg);
+                            switch (msg.what) {
+                                case 0:
+//                                    indexListViewAdapter.notifyDataSetChanged();
+                                    indexListViewAdapter.update();
+                                    pullToRefreshLayout.refreshFinish(PullToRefreshLayout.SUCCEED);
+                                    break;
+                            }
+                        }
+                    };
                     pullToRefreshLayout.refreshFinish(PullToRefreshLayout.SUCCEED);
                 }
             }.sendEmptyMessageDelayed(0, 500);
@@ -237,22 +323,18 @@ public class HomePageFragment extends BaseFragment {
                             super.handleMessage(msg);
                             switch (msg.what) {
                                 case 0:
-                                    if (!msg.obj.equals("0")) {
-                                        indexListViewBeanList.addAll(indexListViewBeanList_loadmore);
+                                    if (!msg.obj.equals("0") && !msg.equals(MaxId)) {
                                         indexUrlBeanList.addAll(indexUrlBeanList_more);
-                                        indexListViewAdapter.notifyDataSetChanged();
+                                        L.d("indexurlbeanlist的长度", indexUrlBeanList.size() + "");
+                                        L.d(indexUrlBeanList.toString());
+                                        indexListViewBeanList.addAll(indexListViewBeanList_loadmore);
+                                        indexListViewAdapter.update();
                                         pullToRefreshLayout.loadmoreFinish(PullToRefreshLayout.SUCCEED);
                                     }
                                     break;
                             }
-
                         }
                     };
-
-//                    indexListViewBeanList.addAll(indexListViewBeanList_loadmore);
-//                    indexUrlBeanList.addAll(indexUrlBeanList_more);
-//                    indexListViewAdapter.notifyDataSetChanged();
-//                    pullToRefreshLayout.loadmoreFinish(PullToRefreshLayout.SUCCEED);
                 }
             }.sendEmptyMessageDelayed(0, 500);
         }
@@ -269,78 +351,44 @@ public class HomePageFragment extends BaseFragment {
     class Refresh implements Runnable {
         @Override
         public void run() {
-            loadData("update_home_2top", MinId);
+            refreshData("update_home_2top", MaxId);
         }
     }
 
-
-    private String getRealUrl(String url_info) {
-        Map<String, String> map = new LinkedHashMap<>();
-        map.put("url", url_info);
-        try {
-            String backMsg = PostUtil.postData(BaseUrl + GetRealUrl, map);
-            try {
-                JSONObject jsonObject = new JSONObject(backMsg);
-                Message message = Message.obtain();
-                if (jsonObject.getInt("result") == 1) {
-                    JSONObject data = jsonObject.getJSONObject("data");
-                    String img = data.getString("img");
-                    String title = data.getString("title");
-                    m3u8 = data.getString("m3u8");
-                    Bundle bundle = new Bundle();
-                    bundle.putString("img", img);
-                    bundle.putString("title", title);
-                    bundle.putString("m3u8", m3u8);
-                    message.setData(bundle);
-                    message.what = 1;
-                    uiHandler.sendMessage(message);
-
-                } else {
-                    message.what = 0;
-                    uiHandler.sendMessage(message);
-                }
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return m3u8;
-    }
-
-    Handler uiHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            Bundle bundle = msg.getData();
-            switch (msg.what) {
-                case 0:
-                    T.showLong(getActivity(), "视频解析失败");
-                    break;
-                case 1:
-                    bundle.getString("img");
-                    bundle.getString("m3u8");
-
-                    break;
-            }
-        }
-    };
 
     public class IndexListViewAdapter extends BaseAdapter {
 
         private Context context;
-        private List<IndexListViewBean> indexListViewBeanList;
+        private List<IndexListViewBean> indexListViewBeans;
         private ListView listView;
-        SyncImageLoader syncImageLoader;
+        private String LeftTopUrl, RightTopUrl, LeftBottomUrl, RightBottomUrl;
+        private int i;
 
         //缓存到本地sd卡，并且可以更新ListView图片
         private ImageLoaderCache mImageLoader;
 
+        // 获取当前应用程序所分配的最大内存
+        private final int maxMemory = (int) Runtime.getRuntime().maxMemory();
+        // 只用五分之一用来做图片缓存
+        private final int cacheSize = maxMemory / 5;
 
-        public IndexListViewAdapter(Context context, List<IndexListViewBean> indexListViewBeanList) {
+        private LruCache<String, Bitmap> mLruCache = new LruCache<String, Bitmap>(
+                cacheSize) {
+
+            // 重写sizeof（）方法
+            @Override
+            protected int sizeOf(String key, Bitmap bitmap) {
+                // TODO Auto-generated method stub
+                // 这里用多少kb来计算
+                return bitmap.getRowBytes() * bitmap.getHeight() / 1024;
+            }
+
+        };
+
+
+        public IndexListViewAdapter(Context context, List<IndexListViewBean> indexListViewBeans) {
             this.context = context;
-            this.indexListViewBeanList = indexListViewBeanList;
+            this.indexListViewBeans = indexListViewBeans;
             mImageLoader = new ImageLoaderCache(context);
         }
 
@@ -348,14 +396,18 @@ public class HomePageFragment extends BaseFragment {
             return mImageLoader;
         }
 
+        public void update() {
+            notifyDataSetChanged();
+        }
+
         @Override
         public int getCount() {
-            return indexListViewBeanList.size();
+            return indexListViewBeans.size();
         }
 
         @Override
         public Object getItem(int position) {
-            return indexListViewBeanList.get(position);
+            return indexListViewBeans.get(position);
         }
 
         @Override
@@ -364,7 +416,7 @@ public class HomePageFragment extends BaseFragment {
         }
 
         @Override
-        public View getView(final int position, View convertView, ViewGroup parent) {
+        public View getView(final int position, View convertView, final ViewGroup parent) {
             View view = convertView;
             ViewHolder holder = null;
             if (view == null) {
@@ -373,11 +425,14 @@ public class HomePageFragment extends BaseFragment {
                 view.setTag(holder);
                 holder.Title = (TextView) view.findViewById(R.id.index_title);
                 holder.LeftTopImg = (ImageView) view.findViewById(R.id.index_left_up_iv);
+
                 holder.LeftTopImg.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         Intent intent = new Intent(getActivity(), VideoViewPlayingActivity.class);
-                        intent.setData(Uri.parse(indexUrlBeanList.get(position).getLeftTop()));
+                        intent.putExtra("url_info", LeftTopUrl);
+                        L.d("leftTopUrl", LeftTopUrl);
+                        L.d("点击获取的位置",position);
                         startActivity(intent);
                     }
                 });
@@ -388,7 +443,7 @@ public class HomePageFragment extends BaseFragment {
                     @Override
                     public void onClick(View v) {
                         Intent intent = new Intent(getActivity(), VideoViewPlayingActivity.class);
-                        intent.setData(Uri.parse(indexUrlBeanList.get(position).getRightTop()));
+                        intent.putExtra("url_info", RightTopUrl);
                         startActivity(intent);
                     }
                 });
@@ -399,7 +454,7 @@ public class HomePageFragment extends BaseFragment {
                     @Override
                     public void onClick(View v) {
                         Intent intent = new Intent(getActivity(), VideoViewPlayingActivity.class);
-                        intent.setData(Uri.parse(indexUrlBeanList.get(position).getLeftBottom()));
+                        intent.putExtra("url_info", LeftBottomUrl);
                         startActivity(intent);
                     }
                 });
@@ -410,7 +465,7 @@ public class HomePageFragment extends BaseFragment {
                     @Override
                     public void onClick(View v) {
                         Intent intent = new Intent(getActivity(), VideoViewPlayingActivity.class);
-                        intent.setData(Uri.parse(indexUrlBeanList.get(position).getRightBottom()));
+                        intent.putExtra("url_info", RightBottomUrl);
                         startActivity(intent);
                     }
                 });
@@ -426,52 +481,41 @@ public class HomePageFragment extends BaseFragment {
                     }
                 });
             } else {
-                holder = (ViewHolder) convertView.getTag();
+                holder = (ViewHolder) view.getTag();
             }
-            holder.Title.setText(indexListViewBeanList.get(position).getTitle());
-            holder.LeftTopTitle.setText(indexListViewBeanList.get(position).getLeftTopTitle());
-            holder.LeftTopTimes.setText(indexListViewBeanList.get(position).getLeftTopTimes());
-            holder.RightTopTitle.setText(indexListViewBeanList.get(position).getRightTopTitle());
-            holder.RightTopTimes.setText(indexListViewBeanList.get(position).getRightTopTimes());
-            holder.LeftBottomTitle.setText(indexListViewBeanList.get(position).getLeftBottomTitle());
-            holder.LeftBottomTimes.setText(indexListViewBeanList.get(position).getLeftBottomTimes());
-            holder.RightBottomTitle.setText(indexListViewBeanList.get(position).getRightBottomTitle());
-            holder.RightBottomTimes.setText(indexListViewBeanList.get(position).getRightBottomTimes());
+            LeftTopUrl = indexListViewBeans.get(position).getLeftTopUrl();
+            RightTopUrl=indexListViewBeans.get(position).getRightTopUrl();
+            LeftBottomUrl=indexListViewBeans.get(position).getLeftBottonUrl();
+            RightBottomUrl =indexListViewBeans.get(position).getRightBottonUrl();
+            holder.Title.setText(indexListViewBeans.get(position).getTitle());
+            holder.LeftTopTitle.setText(indexListViewBeans.get(position).getLeftTopTitle());
+            holder.LeftTopTimes.setText(indexListViewBeans.get(position).getLeftTopTimes());
+            holder.RightTopTitle.setText(indexListViewBeans.get(position).getRightTopTitle());
+            holder.RightTopTimes.setText(indexListViewBeans.get(position).getRightTopTimes());
+            holder.LeftBottomTitle.setText(indexListViewBeans.get(position).getLeftBottomTitle());
+            holder.LeftBottomTimes.setText(indexListViewBeans.get(position).getLeftBottomTimes());
+            holder.RightBottomTitle.setText(indexListViewBeans.get(position).getRightBottomTitle());
+            holder.RightBottomTimes.setText(indexListViewBeans.get(position).getRightBottomTimes());
 
-            holder.LeftTopImg.setImageResource(R.drawable.wait);
-            mImageLoader.DisplayImage(indexListViewBeanList.get(position).getLeftTopImg(), holder.LeftTopImg, false);
-
-            holder.RightTopImg.setImageResource(R.drawable.wait);
-            mImageLoader.DisplayImage(indexListViewBeanList.get(position).getRightTopImg(), holder.RightTopImg, false);
-
-            holder.LeftBottomImg.setImageResource(R.drawable.wait);
-            mImageLoader.DisplayImage(indexListViewBeanList.get(position).getLeftBottomImg(), holder.LeftBottomImg, false);
-
-            holder.RightBottomImg.setImageResource(R.drawable.wait);
-            mImageLoader.DisplayImage(indexListViewBeanList.get(position).getRightBottomImg(), holder.RightBottomImg, false);
+            loadBitmap(indexListViewBeans.get(position).getLeftTopImg(), holder.LeftTopImg);
+            loadBitmap(indexListViewBeans.get(position).getRightTopImg(), holder.RightTopImg);
+            loadBitmap(indexListViewBeans.get(position).getLeftBottomImg(), holder.LeftBottomImg);
+            loadBitmap(indexListViewBeans.get(position).getRightBottomImg(), holder.RightBottomImg);
 
             return view;
         }
 
-        SyncImageLoader.OnImageLoadListener imageLoadListener = new SyncImageLoader.OnImageLoadListener() {
-            @Override
-            public void onImageLoad(Integer t, Drawable drawable) {
-                try {
-                    View view = listView.findViewWithTag(t);
-                    if (view != null) {
-                        ImageView imageView = (ImageView) view.findViewById(R.id.index_left_up_iv);
-                        imageView.setBackground(drawable);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
+        private void loadBitmap(String urlStr, ImageView image) {
 
-            @Override
-            public void onError(Integer t) {
+            ListViewImageTaskUtil asyncLoader = new ListViewImageTaskUtil(image, mLruCache);// 一个异步图片加载对象
+            Bitmap bitmap = asyncLoader.getBitmapFromMemoryCache(urlStr);// 首先从内存缓存中获取图片
+            if (bitmap != null) {
+                image.setImageBitmap(bitmap);// 如果缓存中存在这张图片则直接设置给ImageView
+            } else {
+                image.setImageResource(R.drawable.wait);// 否则先设置成默认的图片
+                asyncLoader.execute(urlStr);// 然后执行异步任务AsycnTask 去网上加载图片
             }
-        };
-
+        }
 
         class ViewHolder {
             TextView Title;

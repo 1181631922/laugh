@@ -48,8 +48,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class VideoViewPlayingActivity extends BaseNoActionbarActivity implements OnPreparedListener, OnCompletionListener,
-        OnErrorListener, OnInfoListener, OnPlayingBufferCacheListener
-{
+        OnErrorListener, OnInfoListener, OnPlayingBufferCacheListener {
 
     private final String TAG = "VideoViewPlayingActivity";
 
@@ -73,7 +72,7 @@ public class VideoViewPlayingActivity extends BaseNoActionbarActivity implements
     private SeekBar mProgress = null;
     private TextView mDuration = null;
     private TextView mCurrPostion = null;
-    private String url_info, m3u8;
+    private String url_info;
 
     /**
      * 记录播放位置
@@ -83,7 +82,7 @@ public class VideoViewPlayingActivity extends BaseNoActionbarActivity implements
     /**
      * 播放状态
      */
-    private  enum PLAYER_STATUS {
+    private enum PLAYER_STATUS {
         PLAYER_IDLE, PLAYER_PREPARING, PLAYER_PREPARED,
     }
 
@@ -191,45 +190,94 @@ public class VideoViewPlayingActivity extends BaseNoActionbarActivity implements
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         mWakeLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK | PowerManager.ON_AFTER_RELEASE, POWER_LOCK);
 
-        Intent intent=this.getIntent();
-        url_info=intent.getStringExtra("url_info");
+
+        Intent intent = this.getIntent();
+        url_info = intent.getStringExtra("url_info");
         L.d(url_info);
 
         mIsHwDecode = getIntent().getBooleanExtra("isHW", false);
-        Uri uriPath = getIntent().getData();
-        if (null != uriPath) {
-            String scheme = uriPath.getScheme();
-            if (null != scheme) {
-                mVideoSource = uriPath.toString();
-            } else {
-                mVideoSource = uriPath.getPath();
-            }
-        }
+
+        Thread loadThread = new Thread(new LoadMore());
+        loadThread.start();
 
         initUI();
 
         /**
          * 开启后台事件处理线程
          */
-        mHandlerThread = new HandlerThread("event handler thread",
-                Process.THREAD_PRIORITY_BACKGROUND);
+        mHandlerThread = new HandlerThread("event handler thread", Process.THREAD_PRIORITY_BACKGROUND);
         mHandlerThread.start();
-        mEventHandler = new EventHandler(mHandlerThread.getLooper());
+//        mEventHandler = new EventHandler(mHandlerThread.getLooper());
 
     }
+
+    class LoadMore implements Runnable {
+        @Override
+        public void run() {
+            getRealUrl(url_info);
+        }
+    }
+
+
+    private void getRealUrl(String url_info) {
+        Map<String, String> map = new LinkedHashMap<>();
+        map.put("url", url_info);
+        try {
+            String backMsg = PostUtil.postData(BaseUrl + GetRealUrl, map);
+            try {
+                JSONObject jsonObject = new JSONObject(backMsg);
+                Message message = Message.obtain();
+                if (jsonObject.getInt("result") == 1) {
+                    JSONObject data = jsonObject.getJSONObject("data");
+                    Bundle bundle=new Bundle();
+                    bundle.putString("m3u8", data.getString("m3u8"));
+                    message.setData(bundle);
+                    message.what = 1;
+                    uiHandler.sendMessage(message);
+
+                } else {
+                    message.what = 0;
+                    uiHandler.sendMessage(message);
+                }
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    Handler uiHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            Bundle bundle = msg.getData();
+            switch (msg.what) {
+                case 0:
+                    T.showLong(VideoViewPlayingActivity.this, "视频解析失败");
+                    break;
+                case 1:
+                    mVideoSource = bundle.getString("m3u8");
+                    mEventHandler = new EventHandler(mHandlerThread.getLooper());
+                    mEventHandler.sendEmptyMessage(EVENT_PLAY);
+                    break;
+            }
+        }
+    };
 
     /**
      * 初始化界面
      */
     private void initUI() {
-        mPlaybtn = (ImageButton)findViewById(R.id.play_btn);
-        mPrebtn = (ImageButton)findViewById(R.id.pre_btn);
-        mForwardbtn = (ImageButton)findViewById(R.id.next_btn);
-        mController = (LinearLayout)findViewById(R.id.controlbar);
+        mPlaybtn = (ImageButton) findViewById(R.id.play_btn);
+        mPrebtn = (ImageButton) findViewById(R.id.pre_btn);
+        mForwardbtn = (ImageButton) findViewById(R.id.next_btn);
+        mController = (LinearLayout) findViewById(R.id.controlbar);
 
-        mProgress = (SeekBar)findViewById(R.id.media_progress);
-        mDuration = (TextView)findViewById(R.id.time_total);
-        mCurrPostion = (TextView)findViewById(R.id.time_current);
+        mProgress = (SeekBar) findViewById(R.id.media_progress);
+        mDuration = (TextView) findViewById(R.id.time_total);
+        mCurrPostion = (TextView) findViewById(R.id.time_current);
 
         registerCallbackForControl();
 
@@ -254,13 +302,13 @@ public class VideoViewPlayingActivity extends BaseNoActionbarActivity implements
         /**
          * 设置解码模式
          */
-        mVV.setDecodeMode(mIsHwDecode?BVideoView.DECODE_HW:BVideoView.DECODE_SW);
+        mVV.setDecodeMode(mIsHwDecode ? BVideoView.DECODE_HW : BVideoView.DECODE_SW);
     }
 
     /**
      * 为控件注册回调处理函数
      */
-    private void registerCallbackForControl(){
+    private void registerCallbackForControl() {
         mPlaybtn.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
                 // TODO Auto-generated method stub
@@ -290,14 +338,14 @@ public class VideoViewPlayingActivity extends BaseNoActionbarActivity implements
                 /**
                  * 如果已经播放了，等待上一次播放结束
                  */
-                if(mPlayerStatus != PLAYER_STATUS.PLAYER_IDLE){
+                if (mPlayerStatus != PLAYER_STATUS.PLAYER_IDLE) {
                     mVV.stopPlayback();
                 }
 
                 /**
                  * 发起一次新的播放任务
                  */
-                if(mEventHandler.hasMessages(EVENT_PLAY))
+                if (mEventHandler.hasMessages(EVENT_PLAY))
                     mEventHandler.removeMessages(EVENT_PLAY);
                 mEventHandler.sendEmptyMessage(EVENT_PLAY);
             }
@@ -342,7 +390,7 @@ public class VideoViewPlayingActivity extends BaseNoActionbarActivity implements
         mProgress.setOnSeekBarChangeListener(osbc1);
     }
 
-    private void updateTextViewWithTimeFormat(TextView view, int second){
+    private void updateTextViewWithTimeFormat(TextView view, int second) {
         int hh = second / 3600;
         int mm = second % 3600 / 60;
         int ss = second % 60;
@@ -379,7 +427,7 @@ public class VideoViewPlayingActivity extends BaseNoActionbarActivity implements
         /**
          * 发起一次播放任务,当然您不一定要在这发起
          */
-        mEventHandler.sendEmptyMessage(EVENT_PLAY);
+//        mEventHandler.sendEmptyMessage(EVENT_PLAY);
     }
 
     private long mTouchTime;
@@ -412,13 +460,13 @@ public class VideoViewPlayingActivity extends BaseNoActionbarActivity implements
     }
 
     @Override
-    protected void onStop(){
+    protected void onStop() {
         super.onStop();
     }
 
     @SuppressLint("NewApi")
     @Override
-    protected void onDestroy(){
+    protected void onDestroy() {
         super.onDestroy();
         /**
          * 退出后台事件处理线程
@@ -429,7 +477,7 @@ public class VideoViewPlayingActivity extends BaseNoActionbarActivity implements
     @Override
     public boolean onInfo(int what, int extra) {
         // TODO Auto-generated method stub
-        switch(what){
+        switch (what) {
             /**
              * 开始缓冲
              */
